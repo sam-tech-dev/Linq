@@ -66,16 +66,19 @@ public class MainActivity extends AppCompatActivity {
         bindView();
 
 
-        listOfPersons=new ArrayList<>();
+        listOfPersons = new ArrayList<>();
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
 
+    /**
+     * function to bind view with java variables
+     */
     private void bindView() {
-        mToolbar=(Toolbar)findViewById(R.id.tb_main);
-        mMainLayout=(CoordinatorLayout)findViewById(R.id.crdl_main);
-        mProgressDialog=(AVLoadingIndicatorView)findViewById(R.id.avi_progress_dialog);
+        mToolbar = (Toolbar) findViewById(R.id.tb_main);
+        mMainLayout = (CoordinatorLayout) findViewById(R.id.crdl_main);
+        mProgressDialog = (AVLoadingIndicatorView) findViewById(R.id.avi_progress_dialog);
         mPersonsView = (RecyclerView) findViewById(R.id.rv_persons);
         mPersonsView.setLayoutManager(new LinearLayoutManager(context));
     }
@@ -85,12 +88,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if(AppDatabase.getInstance(context).isTableEmpty()){
+        if (AppDatabase.getInstance(context).isTableEmpty()) {
             fetchPersonsDetailsFromServer();
-        }else {
+        } else {
             fetchDataFromDatabase();
         }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -102,68 +106,81 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-         int id=item.getItemId();
+        int id = item.getItemId();
 
-         switch (id){
+        switch (id) {
 
-             case R.id.action_sort_by_name:
+            /**
+             * sorted by name
+             */
+            case R.id.action_sort_by_name:
 
-                 Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                     @Override
-                     public int compare(PersonWrapper o1, PersonWrapper o2) {
-                         return o1.getFullName().compareTo(o2.getFullName());
-                     }
-                 });
+                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                    @Override
+                    public int compare(PersonWrapper o1, PersonWrapper o2) {
+                        return o1.getFullName().compareTo(o2.getFullName());
+                    }
+                });
+                adapter.notifyDataSetChanged();
+                break;
 
-                 adapter.notifyDataSetChanged();
+            /**
+             * sorted by mobile Number
+             */
+            case R.id.action_sort_by_mobile:
 
-                 break;
+                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                    @Override
+                    public int compare(PersonWrapper o1, PersonWrapper o2) {
+                        return o1.getPhoneNumber().compareTo(o2.getPhoneNumber());
+                    }
+                });
 
-             case R.id.action_sort_by_mobile:
+                adapter.notifyDataSetChanged();
+                break;
 
-                 Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                     @Override
-                     public int compare(PersonWrapper o1, PersonWrapper o2) {
-                         return o1.getPhoneNumber().compareTo(o2.getPhoneNumber());
-                     }
-                 });
+            /**
+             * sorted by email
+             */
+            case R.id.action_sort_by_email:
+                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                    @Override
+                    public int compare(PersonWrapper o1, PersonWrapper o2) {
+                        return o1.getEmail().compareTo(o2.getEmail());
+                    }
+                });
 
-                 adapter.notifyDataSetChanged();
-                 break;
+                adapter.notifyDataSetChanged();
+                break;
 
-             case R.id.action_sort_by_email:
-                 Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                     @Override
-                     public int compare(PersonWrapper o1, PersonWrapper o2) {
-                         return o1.getEmail().compareTo(o2.getEmail());
-                     }
-                 });
+            /**
+             * sorted by date of birth
+             */
+            case R.id.action_sort_by_dob:
+                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                    @Override
+                    public int compare(PersonWrapper o1, PersonWrapper o2) {
+                        return o1.getDob().compareTo(o2.getDob());
+                    }
+                });
 
-                 adapter.notifyDataSetChanged();
-                 break;
-
-             case R.id.action_sort_by_dob:
-                 Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                     @Override
-                     public int compare(PersonWrapper o1, PersonWrapper o2) {
-                         return o1.getDob().compareTo(o2.getDob());
-                     }
-                 });
-
-                 adapter.notifyDataSetChanged();
-                 break;
-         }
+                adapter.notifyDataSetChanged();
+                break;
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void fetchDataFromDatabase(){
+
+    /**
+     * function to fetch profile data of persons from local database
+     */
+    private void fetchDataFromDatabase() {
 
         listOfPersons.clear();
-
-        Cursor cursor=AppDatabase.getInstance(context).getPersonList();
-        if(cursor!=null && cursor.moveToFirst()){
-            do{
+        Cursor cursor = AppDatabase.getInstance(context).getPersonList();
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
                 String firstName = cursor.getString(cursor.getColumnIndex("firstName"));
                 String lastName = cursor.getString(cursor.getColumnIndex("lastName"));
                 String email = cursor.getString(cursor.getColumnIndex("email"));
@@ -171,28 +188,34 @@ public class MainActivity extends AppCompatActivity {
                 String phoneNumber = cursor.getString(cursor.getColumnIndex("phoneNumber"));
                 String pictureUrl = cursor.getString(cursor.getColumnIndex("pictureMediumUrl"));
                 String pictureImageData = cursor.getString(cursor.getColumnIndex("pictureImageData"));
-                String fullName=firstName +" "+lastName;
-                Bitmap imageBitmap= UtilFunctions.stringToBitmap(pictureImageData);
+                String fullName = firstName + " " + lastName;
+                Bitmap imageBitmap = UtilFunctions.stringToBitmap(pictureImageData);
 
-                PersonWrapper person=new PersonWrapper(fullName, email, dob,phoneNumber,pictureUrl,imageBitmap);
+                PersonWrapper person = new PersonWrapper(fullName, email, dob, phoneNumber, pictureUrl, imageBitmap);
                 listOfPersons.add(person);
 
-            }while (cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
 
         initView(listOfPersons);
     }
 
 
+    /**
+     * function to initiate the view
+     *
+     * @param listOfPersons list of persons to show in recyclerView
+     */
     private void initView(List<PersonWrapper> listOfPersons) {
-         adapter=new PersonAdapter(context,listOfPersons);
+        adapter = new PersonAdapter(context, listOfPersons);
         mPersonsView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
 
 
-
-
+    /**
+     * function for api call to fetch data from server
+     */
     private void fetchPersonsDetailsFromServer() {
 
         if (UtilFunctions.isNetworkAvailable(context)) {
@@ -208,17 +231,30 @@ public class MainActivity extends AppCompatActivity {
                     if (response != null) {
                         try {
 
+                            /**
+                             * parsing json into Objects using gson library
+                             */
                             PersonsApiResponse personsApiResponse = gson.fromJson(String.valueOf(response), PersonsApiResponse.class);
+                            /**
+                             * inserting persons data in local database
+                             */
                             AppDatabase.getInstance(context).insertListOfPersons(personsApiResponse.getResults());
+
+                            /**
+                             * downloading profile pics to store them in database
+                             */
                             downloadingIssueHistoryImages(personsApiResponse.getResults());
 
                             mProgressDialog.setVisibility(View.GONE);
 
+                            /**
+                             * fetching data from database
+                             */
                             fetchDataFromDatabase();
 
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Log.d(TAG,"Exception in api call :"+e.toString());
+                            Log.d(TAG, "Exception in api call :" + e.toString());
                             mProgressDialog.setVisibility(View.GONE);
 
                         }
@@ -236,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     mProgressDialog.setVisibility(View.GONE);
-                    Toast.makeText(context, "Connection Error :"+error.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Connection Error :" + error.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }) {
                 @Override
@@ -266,19 +302,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void downloadingIssueHistoryImages(final List<Result> listOfPersons) {
+
+    /**
+     * function to download profile Images from server  to store in local database
+     * @param listOfPersons list of persons to be stored
+     */
+   private void downloadingIssueHistoryImages(final List<Result> listOfPersons) {
 
         ImageLoader imageLoader = ImageLoader.getInstance();
 
-        for (int i=0;i< listOfPersons.size(); i++) {
+        for (int i = 0; i < listOfPersons.size(); i++) {
             final String imageUrl = listOfPersons.get(i).getPicture().getMedium();
 
             imageLoader.loadImage(imageUrl, new SimpleImageLoadingListener() {
                 @Override
                 public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                     if (loadedImage != null) {
+
                         String encodedImageString = UtilFunctions.bitmapToString(loadedImage);
-                        AppDatabase.getInstance(context).updateProfileImages(imageUri,encodedImageString);
+                        /**
+                         * Calling function to updating profile pic string data in local database
+                         */
+                        AppDatabase.getInstance(context).updateProfileImages(imageUri, encodedImageString);
+
                     } else {
                         Log.d("az", "image bitmap  is null with url " + imageUri);
                     }
@@ -287,7 +333,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
 
 }

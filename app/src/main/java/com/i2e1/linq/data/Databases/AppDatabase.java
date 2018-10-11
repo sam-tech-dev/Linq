@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.i2e1.linq.Utils.UtilFunctions;
 import com.i2e1.linq.data.Pojo.Result;
 
 import java.util.List;
@@ -19,11 +20,17 @@ public class AppDatabase extends SQLiteOpenHelper {
     public static AppDatabase dbInstance;
     Context context;
 
+//    Constructor
     public AppDatabase(Context context) {
         super(context, "linqApp.db", null, database_version);
         this.context = context;
     }
 
+    /**
+     * function to get singleton of database
+     * @param context Context to create database object
+     * @return AppDatabase Object for database operations
+     */
     public static synchronized AppDatabase getInstance(Context context) {
         if (dbInstance == null) {
             dbInstance = new AppDatabase(context.getApplicationContext());
@@ -48,6 +55,9 @@ public class AppDatabase extends SQLiteOpenHelper {
                 "pictureThumbnailUrl text," +
                 "pictureImageData MEDIUMTEXT);";
 
+        /**
+         * creating database table
+         */
         sqLiteDatabase.execSQL(sql_query_persons);
     }
 
@@ -56,6 +66,11 @@ public class AppDatabase extends SQLiteOpenHelper {
 
     }
 
+
+    /**
+     * function to insert list of persons which is fetch from server
+     * @param listOfPersons list of persons
+     */
     public void insertListOfPersons(List<Result> listOfPersons) {
 
         SQLiteDatabase writableDatabase = getWritableDatabase();
@@ -69,9 +84,9 @@ public class AppDatabase extends SQLiteOpenHelper {
             cv.put("firstName", person.getName().getFirst());
             cv.put("lastName", person.getName().getLast());
             cv.put("email", person.getEmail());
-            cv.put("dobDate", person.getDob().getDate());
+            cv.put("dobDate",person.getDob().getDate());
             cv.put("age", person.getDob().getAge());
-            cv.put("phoneNumber", person.getPhone());
+            cv.put("phoneNumber", UtilFunctions.getPhoneNumberFormat(person.getPhone()));
             cv.put("pictureMediumUrl", person.getPicture().getMedium());
             cv.put("pictureLargeUrl", person.getPicture().getLarge());
             cv.put("pictureThumbnailUrl", person.getPicture().getThumbnail());
@@ -87,6 +102,10 @@ public class AppDatabase extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Function to get list of person in cursor
+     * @return database Cursor
+     */
     public Cursor getPersonList() {
         Cursor cr = null;
         SQLiteDatabase writableDatabase = getWritableDatabase();
@@ -100,6 +119,11 @@ public class AppDatabase extends SQLiteOpenHelper {
         return cr;
     }
 
+
+    /**
+     * function to  check whether  persons data is in local databse or not ?
+     * @return Boolean true- database is empty
+     */
     public Boolean isTableEmpty() {
         Cursor cr = null;
         SQLiteDatabase writableDatabase = getWritableDatabase();
@@ -118,10 +142,14 @@ public class AppDatabase extends SQLiteOpenHelper {
             e.printStackTrace();
             return  true;
         }
-
     }
 
 
+    /**
+     * function to update profile pic data  string in database after downloading them
+     * @param mediumImageUrl image url to download
+     * @param imageData image data in string format
+     */
     public void updateProfileImages(String mediumImageUrl, String imageData) {
         SQLiteDatabase writableDatabase = getWritableDatabase();
         try {

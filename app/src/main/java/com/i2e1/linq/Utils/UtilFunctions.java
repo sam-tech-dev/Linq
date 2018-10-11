@@ -10,10 +10,18 @@ import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class UtilFunctions {
 
 
+    /**
+     * function to check  whether neywork connections available or not ?
+     * @param context Context to get service to check internet connectivity
+     * @return Boolean
+     */
     public static  boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -22,8 +30,12 @@ public class UtilFunctions {
     }
 
 
+    /**
+     * function to convert image bitmap to String format
+     * @param bitmap Bitmap to be converted
+     * @return String ..image data string
+     */
     public static String bitmapToString(Bitmap bitmap) {
-
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
         byte[] bytedata = stream.toByteArray();
@@ -38,7 +50,11 @@ public class UtilFunctions {
     }
 
 
-
+    /**
+     * function to convert string to Bitmap
+     * @param imageString
+     * @return
+     */
     public static Bitmap stringToBitmap(String imageString) {
         Bitmap imageBitmap = null;
         if (imageString != null && imageString.length() > 0) {
@@ -46,6 +62,38 @@ public class UtilFunctions {
             imageBitmap = BitmapFactory.decodeByteArray(image_data, 0, image_data.length);
         }
         return imageBitmap;
+    }
+
+
+    /**
+     * function convert phone number in clean format by removing special characters and giving space betweeen them
+     * @param phoneNumberString
+     * @return
+     */
+    public static String getPhoneNumberFormat(String phoneNumberString) {
+        String phone=phoneNumberString.replace("(", "").replace(")","").replace("-","");
+        StringBuilder builder= new StringBuilder(phone);
+        builder.insert(3," ");
+        builder.insert(7," ");
+        return builder.toString();
+    }
+
+
+    /**
+     * function to covert datetime string into 12/09/2018 date format
+     * @param dateString datetime string to be converted
+     * @return
+     */
+    public static String convertDateTimeToDateFormat(String dateString) {
+        String dateFormat = "";
+        try {
+            final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            final Date dateObj = sdf.parse(dateString);
+            dateFormat = new SimpleDateFormat("dd").format(dateObj)+"/"+new SimpleDateFormat("MM").format(dateObj)+"/"+new SimpleDateFormat("yyyy").format(dateObj);
+        } catch (final ParseException e) {
+            e.printStackTrace();
+        }
+        return dateFormat;
     }
 
 }
