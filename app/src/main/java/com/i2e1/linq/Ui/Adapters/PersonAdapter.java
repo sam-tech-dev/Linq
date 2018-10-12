@@ -44,16 +44,16 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.viewHolder
 
         PersonWrapper person= listOfPersons.get(i);
 
-        if(person.getPictureBitmap()==null){
+        if(person.getPictureImageData().length()==0){
             /**
              * loading image directly from url in case of not stored in database yet
              */
-            Glide.with(context).load(person.getPictureUrl()).thumbnail(0.5f).into(holder.mProfilePic);
+            Glide.with(context).load(person.getPictureUrl()).into(holder.mProfilePic);
         }else {
             /**
              * setting bitmap data from database to imageView
              */
-            holder.mProfilePic.setImageBitmap(person.getPictureBitmap());
+            holder.mProfilePic.setImageBitmap(UtilFunctions.stringToBitmap(person.getPictureImageData()));
         }
 
         holder.mPersonName.setText(person.getFullName());

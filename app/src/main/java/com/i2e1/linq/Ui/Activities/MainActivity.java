@@ -1,7 +1,6 @@
 package com.i2e1.linq.Ui.Activities;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -18,19 +17,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.google.gson.Gson;
+import com.grampower.menuapplication.data.network.AppApiHelper;
 import com.i2e1.linq.R;
 import com.i2e1.linq.Ui.Adapters.PersonAdapter;
-import com.i2e1.linq.Utils.Constants;
 import com.i2e1.linq.Utils.UtilFunctions;
-import com.i2e1.linq.data.Databases.AppDatabase;
+import com.i2e1.linq.data.Databases.Room.DataBaseHelper;
 import com.i2e1.linq.data.Pojo.PersonWrapper;
 import com.i2e1.linq.data.Pojo.PersonsApiResponse;
 import com.i2e1.linq.data.Pojo.Result;
@@ -38,12 +29,13 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -88,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (AppDatabase.getInstance(context).isTableEmpty()) {
+        if (new DataBaseHelper(context).getPersons().size() < 1) {
             fetchPersonsDetailsFromServer();
         } else {
             fetchDataFromDatabase();
@@ -115,13 +107,16 @@ public class MainActivity extends AppCompatActivity {
              */
             case R.id.action_sort_by_name:
 
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getFullName().compareTo(o2.getFullName());
-                    }
-                });
-                adapter.notifyDataSetChanged();
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getFullName().compareTo(o2.getFullName());
+                        }
+                    });
+                    adapter.notifyDataSetChanged();
+
+                }
                 break;
 
             /**
@@ -129,42 +124,49 @@ public class MainActivity extends AppCompatActivity {
              */
             case R.id.action_sort_by_mobile:
 
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getPhoneNumber().compareTo(o2.getPhoneNumber());
-                    }
-                });
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getPhoneNumber().compareTo(o2.getPhoneNumber());
+                        }
+                    });
 
-                adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
+                }
                 break;
+
 
             /**
              * sorted by email
              */
             case R.id.action_sort_by_email:
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getEmail().compareTo(o2.getEmail());
-                    }
-                });
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getEmail().compareTo(o2.getEmail());
+                        }
+                    });
 
-                adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
+                }
                 break;
 
             /**
              * sorted by date of birth
              */
             case R.id.action_sort_by_dob:
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getDob().compareTo(o2.getDob());
-                    }
-                });
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getDob().compareTo(o2.getDob());
+                        }
+                    });
 
-                adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
+                }
                 break;
         }
 
@@ -177,26 +179,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void fetchDataFromDatabase() {
 
-        listOfPersons.clear();
-        Cursor cursor = AppDatabase.getInstance(context).getPersonList();
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                String firstName = cursor.getString(cursor.getColumnIndex("firstName"));
-                String lastName = cursor.getString(cursor.getColumnIndex("lastName"));
-                String email = cursor.getString(cursor.getColumnIndex("email"));
-                String dob = cursor.getString(cursor.getColumnIndex("dobDate"));
-                String phoneNumber = cursor.getString(cursor.getColumnIndex("phoneNumber"));
-                String pictureUrl = cursor.getString(cursor.getColumnIndex("pictureMediumUrl"));
-                String pictureImageData = cursor.getString(cursor.getColumnIndex("pictureImageData"));
-                String fullName = firstName + " " + lastName;
-                Bitmap imageBitmap = UtilFunctions.stringToBitmap(pictureImageData);
-
-                PersonWrapper person = new PersonWrapper(fullName, email, dob, phoneNumber, pictureUrl, imageBitmap);
-                listOfPersons.add(person);
-
-            } while (cursor.moveToNext());
-        }
-
+        listOfPersons = new DataBaseHelper(context).getPersons();
         initView(listOfPersons);
     }
 
@@ -214,80 +197,56 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * function for api call to fetch data from server
+     * function for api call using retrofit to fetch data from server
      */
     private void fetchPersonsDetailsFromServer() {
 
         if (UtilFunctions.isNetworkAvailable(context)) {
 
+
             mProgressDialog.setVisibility(View.VISIBLE);
-
-            final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, Constants.persons_api_url, null, new Response.Listener<JSONObject>() {
+            Call<PersonsApiResponse> call = new AppApiHelper().getPersons();
+            call.enqueue(new Callback<PersonsApiResponse>() {
                 @Override
-                public void onResponse(final JSONObject response) {
+                public void onResponse(Call<PersonsApiResponse> call, retrofit2.Response<PersonsApiResponse> response) {
+                    List<Result> listOFPersons = response.body().getResults();
 
-                    Log.d(TAG, "Response : " + response.toString());
-                    final Gson gson = new Gson();
-                    if (response != null) {
-                        try {
+                    /**
+                     * inserting persons data in local database
+                     */
 
-                            /**
-                             * parsing json into Objects using gson library
-                             */
-                            PersonsApiResponse personsApiResponse = gson.fromJson(String.valueOf(response), PersonsApiResponse.class);
-                            /**
-                             * inserting persons data in local database
-                             */
-                            AppDatabase.getInstance(context).insertListOfPersons(personsApiResponse.getResults());
-
-                            /**
-                             * downloading profile pics to store them in database
-                             */
-                            downloadingIssueHistoryImages(personsApiResponse.getResults());
-
-                            mProgressDialog.setVisibility(View.GONE);
-
-                            /**
-                             * fetching data from database
-                             */
-                            fetchDataFromDatabase();
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Log.d(TAG, "Exception in api call :" + e.toString());
-                            mProgressDialog.setVisibility(View.GONE);
-
-                        }
-
-                    } else {
-
-                        mProgressDialog.setVisibility(View.GONE);
-
-                        Toast.makeText(context, "Connection Error", Toast.LENGTH_LONG).show();
-                        return;
-
+                    List<PersonWrapper> personWrapperList = new ArrayList<>();
+                    for (int i = 0; i < listOFPersons.size(); i++) {
+                        Result result = listOFPersons.get(i);
+                        PersonWrapper person = new PersonWrapper(0, result.getName().getFirst() + " " + result.getName().getFirst(),
+                                result.getEmail(), result.getDob().getDate(), UtilFunctions.getPhoneNumberFormat(result.getPhone()), result.getPicture().getMedium(), "");
+                        personWrapperList.add(person);
                     }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
+
+                    new DataBaseHelper(context).insertPersonList(personWrapperList);
+
+                    /**
+                     * downloading profile pics to store them in database
+                     */
+                    downloadingIssueHistoryImages(listOFPersons);
+
                     mProgressDialog.setVisibility(View.GONE);
-                    Toast.makeText(context, "Connection Error :" + error.getMessage(), Toast.LENGTH_LONG).show();
+                    /**
+                     * fetching data from database
+                     */
+                    fetchDataFromDatabase();
                 }
-            }) {
+
                 @Override
-                public String getBodyContentType() {
-                    return "application/json; charset=utf-8";
+                public void onFailure(Call<PersonsApiResponse> call, Throwable t) {
+                    mProgressDialog.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            };
+            });
 
-            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(20000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-            RequestQueue requestQueue = Volley.newRequestQueue(context, null);
-            requestQueue.add(jsonObjectRequest);
 
         } else {
+
             Snackbar snackbar = Snackbar.make(mMainLayout, "No Connections", Snackbar.LENGTH_LONG);
             View sbView = snackbar.getView();
             TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -299,15 +258,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }).setActionTextColor(getResources().getColor(R.color.white));
 
+            snackbar.show();
+
         }
+
+
     }
 
 
     /**
      * function to download profile Images from server  to store in local database
+     *
      * @param listOfPersons list of persons to be stored
      */
-   private void downloadingIssueHistoryImages(final List<Result> listOfPersons) {
+    private void downloadingIssueHistoryImages(final List<Result> listOfPersons) {
 
         ImageLoader imageLoader = ImageLoader.getInstance();
 
@@ -323,8 +287,8 @@ public class MainActivity extends AppCompatActivity {
                         /**
                          * Calling function to updating profile pic string data in local database
                          */
-                        AppDatabase.getInstance(context).updateProfileImages(imageUri, encodedImageString);
-
+                        //AppDatabase.getInstance(context).updateProfileImages(imageUri, encodedImageString);
+                        new DataBaseHelper(context).updateImageData(imageUri, encodedImageString);
                     } else {
                         Log.d("az", "image bitmap  is null with url " + imageUri);
                     }
