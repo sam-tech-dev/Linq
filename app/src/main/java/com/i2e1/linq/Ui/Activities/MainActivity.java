@@ -114,57 +114,64 @@ public class MainActivity extends AppCompatActivity {
              * sorted by name
              */
             case R.id.action_sort_by_name:
-
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getFullName().compareTo(o2.getFullName());
-                    }
-                });
-                adapter.notifyDataSetChanged();
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getFullName().compareTo(o2.getFullName());
+                        }
+                    });
+                    adapter.notifyDataSetChanged();
+                }
                 break;
 
             /**
              * sorted by mobile Number
              */
             case R.id.action_sort_by_mobile:
+                if (listOfPersons != null && adapter != null) {
 
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getPhoneNumber().compareTo(o2.getPhoneNumber());
-                    }
-                });
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getPhoneNumber().compareTo(o2.getPhoneNumber());
+                        }
+                    });
 
-                adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
+                }
                 break;
 
             /**
              * sorted by email
              */
             case R.id.action_sort_by_email:
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getEmail().compareTo(o2.getEmail());
-                    }
-                });
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getEmail().compareTo(o2.getEmail());
+                        }
+                    });
 
-                adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
+                }
                 break;
 
             /**
              * sorted by date of birth
              */
             case R.id.action_sort_by_dob:
-                Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
-                    @Override
-                    public int compare(PersonWrapper o1, PersonWrapper o2) {
-                        return o1.getDob().compareTo(o2.getDob());
-                    }
-                });
+                if (listOfPersons != null && adapter != null) {
+                    Collections.sort(listOfPersons, new Comparator<PersonWrapper>() {
+                        @Override
+                        public int compare(PersonWrapper o1, PersonWrapper o2) {
+                            return o1.getDob().compareTo(o2.getDob());
+                        }
+                    });
 
-                adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
+                }
                 break;
         }
 
@@ -256,7 +263,6 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                             Log.d(TAG, "Exception in api call :" + e.toString());
                             mProgressDialog.setVisibility(View.GONE);
-
                         }
 
                     } else {
@@ -298,16 +304,17 @@ public class MainActivity extends AppCompatActivity {
                     fetchPersonsDetailsFromServer();
                 }
             }).setActionTextColor(getResources().getColor(R.color.white));
-
+            snackbar.show();
         }
     }
 
 
     /**
      * function to download profile Images from server  to store in local database
+     *
      * @param listOfPersons list of persons to be stored
      */
-   private void downloadingIssueHistoryImages(final List<Result> listOfPersons) {
+    private void downloadingIssueHistoryImages(final List<Result> listOfPersons) {
 
         ImageLoader imageLoader = ImageLoader.getInstance();
 
